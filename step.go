@@ -1,11 +1,14 @@
 package wizard
 
-import "webtyp.com/context"
+import (
+	"webtyp.com/context"
+	"webtyp.com/lang"
+)
 
 // Step represents a single interaction or execution unit in the wizard.
 // It is designed to be used as a literal for easy instantiation.
 type Step struct {
-	LabelText string
+	LabelText lang.Text
 	DefaultFn func(ctx *context.Context) string
 	OnInputFn func(input string, ctx *context.Context) (continueFlow bool, err error)
 	OnShowFn  func(log func(message ...any))
@@ -14,11 +17,15 @@ type Step struct {
 	// Wizard.Sensitive() (e.g. webtyp/devtui, via tui.Sensitive) masks it
 	// on screen while it is being typed.
 	Sensitive bool
+	// NextFn, when set, runs after this step's input is accepted (OnInputFn
+	// returned true with no error). The steps it returns are inserted right
+	// after this step, before any step that was already queued.
+	NextFn func(ctx *context.Context) []*Step
 }
 
 // Label returns the prompt text for the UI.
 func (s *Step) Label() string {
-	return s.LabelText
+	return lang.Translate(s.LabelText).String()
 }
 
 // DefaultValue returns a suggestion based on the current context.
@@ -48,3 +55,11 @@ func (s *Step) OnShow(log func(message ...any)) {
 // orchestratorStep needs it and a Go type cannot have a field and a method
 // share one name.
 func (s *Step) IsSensitive() bool { return s.Sensitive }
+
+// Next returns the steps produced by NextFn, or nil if none.
+func (s *Step) Next(ctx *context.Context) []*Step {
+	if s.NextFn == nil {
+		return nil
+	}
+	return s.NextFn(ctx)
+}

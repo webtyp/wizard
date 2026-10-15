@@ -1,19 +1,20 @@
-package wizard
+package tests
 
 import (
 	"testing"
 
 	"webtyp.com/context"
 	"webtyp.com/fmt"
+	"webtyp.com/wizard"
 )
 
 type MockModule struct {
 	name  string
-	steps []*Step
+	steps []*wizard.Step
 }
 
 func (m *MockModule) Name() string { return m.name }
-func (m *MockModule) GetSteps() []*Step {
+func (m *MockModule) GetSteps() []*wizard.Step {
 	return m.steps
 }
 
@@ -21,7 +22,7 @@ func TestWizardFlow(t *testing.T) {
 	completed := false
 	onComplete := func(ctx *context.Context) { completed = true }
 
-	step1 := &Step{
+	step1 := &wizard.Step{
 		LabelText: "Project Name",
 		DefaultFn: func(ctx *context.Context) string { return "my-project" },
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) {
@@ -30,7 +31,7 @@ func TestWizardFlow(t *testing.T) {
 		},
 	}
 
-	step2 := &Step{
+	step2 := &wizard.Step{
 		LabelText: "Location",
 		DefaultFn: func(ctx *context.Context) string { return "./" },
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) {
@@ -39,8 +40,8 @@ func TestWizardFlow(t *testing.T) {
 		},
 	}
 
-	mod := &MockModule{name: "Test", steps: []*Step{step1, step2}}
-	w := New(onComplete, mod)
+	mod := &MockModule{name: "Test", steps: []*wizard.Step{step1, step2}}
+	w := wizard.New(onComplete, mod)
 
 	// Verification 1: Initial state
 	if w.Label() != "Project Name" {
@@ -70,41 +71,30 @@ func TestWizardFlow(t *testing.T) {
 	if w.WaitingForUser() {
 		t.Error("expected WaitingForUser to be false after completion")
 	}
-
-	// Verify context values (directly from mutable ctx)
-	if w.ctx.Value("name") != "test-app" {
-		t.Errorf("expected context name test-app, got %s", w.ctx.Value("name"))
-	}
-	if w.ctx.Value("path") != "/tmp/test" {
-		t.Errorf("expected context path /tmp/test, got %s", w.ctx.Value("path"))
-	}
 }
 
 func TestWizardErrorFlow(t *testing.T) {
-	step1 := &Step{
+	step1 := &wizard.Step{
 		LabelText: "Hard Error Step",
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) {
 			return false, fmt.Err("critical failure")
 		},
 	}
 
-	step2 := &Step{
+	step2 := &wizard.Step{
 		LabelText: "Success Step",
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) {
 			return true, nil
 		},
 	}
 
-	mod := &MockModule{name: "ErrorTest", steps: []*Step{step1, step2}}
-	w := New(nil, mod)
+	mod := &MockModule{name: "ErrorTest", steps: []*wizard.Step{step1, step2}}
+	w := wizard.New(nil, mod)
 
 	// 1. Test Error = stay on step
 	w.Change("trigger crash")
 	if w.Label() != "Hard Error Step" {
 		t.Errorf("expected to stay on Hard Error Step, got %s", w.Label())
-	}
-	if w.currentStepIdx != 0 {
-		t.Errorf("expected index 0, got %d", w.currentStepIdx)
 	}
 
 	// 2. Fix step1 logic and advance
@@ -114,8 +104,5 @@ func TestWizardErrorFlow(t *testing.T) {
 	w.Change("ok")
 	if w.Label() != "Success Step" {
 		t.Errorf("expected to move to Success Step, got %s", w.Label())
-	}
-	if w.currentStepIdx != 1 {
-		t.Errorf("expected index 1, got %d", w.currentStepIdx)
 	}
 }

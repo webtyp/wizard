@@ -4,6 +4,11 @@ import (
 	"webtyp.com/context"
 )
 
+// StepSource provides the steps a wizard runs, in order.
+type StepSource interface {
+	GetSteps() []*Step
+}
+
 // orchestratorStep is the internal interface used by the Wizard.
 // Both the provided Step struct and any custom implementation can satisfy this.
 type orchestratorStep interface {
@@ -12,6 +17,7 @@ type orchestratorStep interface {
 	OnInput(input string, ctx *context.Context) (bool, error)
 	OnShow(log func(message ...any))
 	IsSensitive() bool
+	Next(ctx *context.Context) []*Step
 }
 
 // Wizard orchestrates the execution of multiple Steps.
@@ -32,18 +38,16 @@ type Wizard struct {
 	waitingForUser bool
 
 	onComplete func(ctx *context.Context)
-	items      []any
+	sources    []StepSource
 }
 
-// New creates a wizard from items that provide steps (must implement GetSteps() []*Step).
-func New(onComplete func(ctx *context.Context), items ...any) *Wizard {
+// New creates a wizard from items that provide steps.
+func New(onComplete func(ctx *context.Context), sources ...StepSource) *Wizard {
 	var iSteps []orchestratorStep
 
-	for _, item := range items {
-		if getter, ok := item.(interface{ GetSteps() []*Step }); ok {
-			for _, s := range getter.GetSteps() {
-				iSteps = append(iSteps, s)
-			}
+	for _, source := range sources {
+		for _, s := range source.GetSteps() {
+			iSteps = append(iSteps, s)
 		}
 	}
 
@@ -55,7 +59,7 @@ func New(onComplete func(ctx *context.Context), items ...any) *Wizard {
 		lastShownStepIdx: -1,
 		onComplete:       onComplete,
 		stepMessage:      "",
-		items:            items,
+		sources:          sources,
 	}
 	// Initializing step 0 does NOT trigger OnShow automatically because
 	// the TUI logger hasn't been injected yet. OnTabActive will trigger it.

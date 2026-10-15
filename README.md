@@ -9,14 +9,16 @@ The library orchestrates a sequence of `Step` struct helpers. It manages state v
 ### Steps
 ```go
 type Step struct {
-    LabelText  string
+    LabelText  lang.Text
     DefaultFn  func(ctx *context.Context) string
     OnInputFn  func(input string, ctx *context.Context) (continueFlow bool, err error)
+    // NextFn dynamically inserts returned steps immediately following the current step.
+    NextFn     func(ctx *context.Context) []*Step
 }
 ```
 
 ### Flow Control
-- **New(onComplete func(ctx *context.Context), modules ...Module)**: Initializes orchestration.
+- **New(onComplete func(ctx *context.Context), sources ...StepSource)**: Initializes orchestration. `StepSource` is an interface with `GetSteps() []*Step`.
 - **Change(input)**: Executes `OnInput` for the current step.
 - If `error != nil`, the wizard **stays on the current step**.
 - If `error == nil` and `continueFlow == true`, the wizard **advances to the next step**.
@@ -30,17 +32,13 @@ type Step struct {
 ## Usage
 
 ```go
-// 1. Define a Module
+// 1. Define a StepSource
 type MyModule struct {
     Steps []*wizard.Step
 }
 func (m MyModule) Name() string { return "My Module" }
-func (m MyModule) GetSteps() []any {
-    steps := make([]any, len(m.Steps))
-    for i, s := range m.Steps {
-        steps[i] = s
-    }
-    return steps
+func (m MyModule) GetSteps() []*wizard.Step {
+    return m.Steps
 }
 
 // 2. Create steps
@@ -60,3 +58,7 @@ steps := []*wizard.Step{
 wiz := wizard.New(func(ctx *context.Context) { println("Done!") }, &MyModule{Steps: steps})
 wiz.Change("new-project")
 ```
+
+## Translations
+
+Use `wizard.Dictionary()` to get the embedded `lang.json` translations, suitable for loading with `lang.Load()`. Step `LabelText` uses `lang.Text` and will be translated automatically.

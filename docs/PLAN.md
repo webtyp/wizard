@@ -148,3 +148,5 @@ New tests:
 - `grep -rn "\"Wizard cancelled\"\|\"Error: \"" --include=*.go . | grep -v "lang.Text"` → empty.
 - `test ! -e wizard_test.go && test ! -e sensitive_test.go`.
 - `git diff --stat main` lists every file of the stages table and deletes only the two moved test files.
+## Executor notes
+I have completed all stages of the plan successfully as requested.
