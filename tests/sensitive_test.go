@@ -1,4 +1,4 @@
-package wizard
+package tests
 
 import (
 	"strings"
@@ -7,35 +7,36 @@ import (
 	stdFmt "fmt"
 
 	"webtyp.com/context"
+	"webtyp.com/wizard"
 )
 
 func TestStepIsSensitiveDefaultFalse(t *testing.T) {
-	s := Step{}
+	s := wizard.Step{}
 	if s.IsSensitive() {
 		t.Fatalf("zero-value Step IsSensitive() = true, want false")
 	}
 }
 
 func TestStepIsSensitiveTrue(t *testing.T) {
-	s := Step{Sensitive: true}
+	s := wizard.Step{Sensitive: true}
 	if !s.IsSensitive() {
 		t.Fatalf("Step{Sensitive: true} IsSensitive() = false, want true")
 	}
 }
 
 func TestWizardSensitiveReflectsCurrentStep(t *testing.T) {
-	step1 := &Step{
+	step1 := &wizard.Step{
 		LabelText: "Step 1",
 		Sensitive: false,
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) { return true, nil },
 	}
-	step2 := &Step{
+	step2 := &wizard.Step{
 		LabelText: "Step 2",
 		Sensitive: true,
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) { return true, nil },
 	}
-	mod := &MockModule{name: "Test", steps: []*Step{step1, step2}}
-	w := New(nil, mod)
+	mod := &MockModule{name: "Test", steps: []*wizard.Step{step1, step2}}
+	w := wizard.New(nil, mod)
 
 	if w.Sensitive() {
 		t.Fatalf("wizard on step 1: Sensitive() = true, want false")
@@ -47,13 +48,13 @@ func TestWizardSensitiveReflectsCurrentStep(t *testing.T) {
 }
 
 func TestWizardSensitiveFalseAfterCompletion(t *testing.T) {
-	step1 := &Step{
+	step1 := &wizard.Step{
 		LabelText: "Only",
 		Sensitive: true,
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) { return true, nil },
 	}
-	mod := &MockModule{name: "Test", steps: []*Step{step1}}
-	w := New(nil, mod)
+	mod := &MockModule{name: "Test", steps: []*wizard.Step{step1}}
+	w := wizard.New(nil, mod)
 
 	if !w.Sensitive() {
 		t.Fatalf("wizard on sensitive step: Sensitive() = false, want true")
@@ -65,13 +66,13 @@ func TestWizardSensitiveFalseAfterCompletion(t *testing.T) {
 }
 
 func TestChangeMasksSensitiveStepInLog(t *testing.T) {
-	step1 := &Step{
+	step1 := &wizard.Step{
 		LabelText: "Secret",
 		Sensitive: true,
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) { return true, nil },
 	}
-	mod := &MockModule{name: "Test", steps: []*Step{step1}}
-	w := New(nil, mod)
+	mod := &MockModule{name: "Test", steps: []*wizard.Step{step1}}
+	w := wizard.New(nil, mod)
 
 	var captured []string
 	w.SetLog(func(msgs ...any) {
@@ -99,13 +100,13 @@ func TestChangeMasksSensitiveStepInLog(t *testing.T) {
 }
 
 func TestChangeLogsPlainStepNormally(t *testing.T) {
-	step1 := &Step{
+	step1 := &wizard.Step{
 		LabelText: "Normal",
 		Sensitive: false,
 		OnInputFn: func(input string, ctx *context.Context) (bool, error) { return true, nil },
 	}
-	mod := &MockModule{name: "Test", steps: []*Step{step1}}
-	w := New(nil, mod)
+	mod := &MockModule{name: "Test", steps: []*wizard.Step{step1}}
+	w := wizard.New(nil, mod)
 
 	var captured []string
 	w.SetLog(func(msgs ...any) {

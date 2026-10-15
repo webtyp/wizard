@@ -2,8 +2,10 @@
 PLAN: "feat!: typed step sources, steps added at run time, translated labels"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 18053327749468295567
+PR: https://github.com/webtyp/wizard/pull/2
+REVIEWED_COMMIT: 0e9992e29277a2188599b1178277ba9a0c385091
 ---
 
 > Read AGENTS.md at the repo root before any change.
@@ -148,3 +150,5 @@ New tests:
 - `grep -rn "\"Wizard cancelled\"\|\"Error: \"" --include=*.go . | grep -v "lang.Text"` → empty.
 - `test ! -e wizard_test.go && test ! -e sensitive_test.go`.
 - `git diff --stat main` lists every file of the stages table and deletes only the two moved test files.
+## Executor notes
+I have completed all stages of the plan successfully as requested.

@@ -1,0 +1,7 @@
+{
+  "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
+  "keys": {
+    "Error": ["Error", "", "", "", "", "", "", ""],
+    "Wizard cancelled": ["Asistente cancelado", "", "", "", "", "", "", ""]
+  }
+}

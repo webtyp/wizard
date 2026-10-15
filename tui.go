@@ -1,5 +1,17 @@
 package wizard
 
+import "webtyp.com/lang"
+
+const (
+	textError     lang.Text = "Error"
+	textCancelled lang.Text = "Wizard cancelled"
+)
+
+const (
+	symbolConfirmed = "✓ "
+	symbolMasked    = "••••••••"
+)
+
 // Handler Interface (compatible with app's TUI expectations)
 
 func (w *Wizard) Name() string         { return w.stepMessage }
@@ -23,7 +35,7 @@ func (w *Wizard) Change(newValue string) {
 	continueFlow, err := step.OnInput(newValue, w.ctx)
 
 	if err != nil {
-		w.log("Error: " + err.Error())
+		w.log(lang.Translate(textError).String() + ": " + err.Error())
 		return
 	}
 
@@ -36,9 +48,19 @@ func (w *Wizard) Change(newValue string) {
 	// streams over SSE, see webtyp/devtui GET /logs).
 	confirmed := newValue
 	if step.IsSensitive() {
-		confirmed = "••••••••"
+		confirmed = symbolMasked
 	}
-	w.log("✓ " + w.label + ": " + confirmed)
+	w.log(symbolConfirmed + w.label + ": " + confirmed)
+
+	nextSteps := step.Next(w.ctx)
+	if len(nextSteps) > 0 {
+		var oNext []orchestratorStep
+		for _, s := range nextSteps {
+			oNext = append(oNext, s)
+		}
+		// Insert right after the current step
+		w.steps = append(w.steps[:w.currentStepIdx+1], append(oNext, w.steps[w.currentStepIdx+1:]...)...)
+	}
 
 	// Move to next step
 	w.currentStepIdx++
@@ -60,8 +82,8 @@ func (w *Wizard) OnTabActive() {
 	// the OnShow hook of the current step when the tab becomes active.
 	w.showCurrentStep()
 
-	for _, item := range w.items {
-		if aware, ok := item.(interface{ OnTabActive() }); ok {
+	for _, source := range w.sources {
+		if aware, ok := source.(interface{ OnTabActive() }); ok {
 			aware.OnTabActive()
 		}
 	}
@@ -70,5 +92,5 @@ func (w *Wizard) OnTabActive() {
 // Cancelable implementation
 func (w *Wizard) Cancel() {
 	w.waitingForUser = false
-	w.log("Wizard cancelled")
+	w.log(lang.Translate(textCancelled).String())
 }
