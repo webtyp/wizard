@@ -5,7 +5,7 @@ REVIEWER: none
 STATUS: review
 SESSION: 18053327749468295567
 PR: https://github.com/webtyp/wizard/pull/2
-REVIEWED_COMMIT: 63bcb4e6bd4fdf3b9a7e170e077b0f160eb854d7
+REVIEWED_COMMIT: 0e9992e29277a2188599b1178277ba9a0c385091
 ---
 
 > Read AGENTS.md at the repo root before any change.
