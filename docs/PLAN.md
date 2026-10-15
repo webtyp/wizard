@@ -2,8 +2,10 @@
 PLAN: "feat!: typed step sources, steps added at run time, translated labels"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 18053327749468295567
+PR: https://github.com/webtyp/wizard/pull/2
+REVIEWED_COMMIT: 63bcb4e6bd4fdf3b9a7e170e077b0f160eb854d7
 ---
 
 > Read AGENTS.md at the repo root before any change.
