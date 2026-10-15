@@ -2,6 +2,8 @@
 PLAN: "feat!: typed step sources, steps added at run time, translated labels"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 18053327749468295567
 ---
 
 > Read AGENTS.md at the repo root before any change.
