@@ -7,4 +7,4 @@ require (
 	webtyp.com/fmt v1.0.0
 )
 
-require webtyp.com/lang v0.1.6
+require webtyp.com/lang v0.1.7
